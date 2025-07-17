@@ -1,31 +1,41 @@
-const API_BASE = "http://localhost:8080";
+const API_BASE = "http://localhost:8080"; // Cambiar si es necesario
 
-document.getElementById("loginForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+    const loginData = {
+      email: document.getElementById("email").value,
+      password: document.getElementById("password").value
+    };
 
-  try {
-    const res = await fetch(`${API_BASE}/api/usuarios/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
-    });
+    try {
+      const res = await fetch(`${API_BASE}/api/usuarios/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(loginData)
+      });
 
-    if (res.ok) {
-      const usuario = await res.json();
-      document.getElementById("mensajeLogin").textContent = `Bienvenido, ${usuario.nombre}`;
-      // Acá podrías guardar los datos en localStorage o redireccionar
-      // localStorage.setItem("usuario", JSON.stringify(usuario));
-      // window.location.href = "dashboard.html";
-    } else {
-      document.getElementById("mensajeLogin").textContent = "Correo o contraseña incorrectos.";
+      if (res.ok) {
+        const usuario = await res.json();
+
+        Swal.fire({
+          icon: "success",
+          title: "¡Bienvenido!",
+          text: `Hola ${usuario.nombre}`,
+          confirmButtonText: "Ir a Turnos"
+        }).then(() => {
+          window.location.href = "turnos.html"; // Asegúrate que exista o se cree después
+        });
+
+        // Guardar el usuario en localStorage si querés mantener sesión:
+        // localStorage.setItem("usuario", JSON.stringify(usuario));
+      } else {
+        Swal.fire("Error", "Email o contraseña incorrectos", "error");
+      }
+    } catch (error) {
+      console.error("Error al iniciar sesión:", error);
+      Swal.fire("Error", "Problema de red o servidor", "error");
     }
-  } catch (error) {
-    console.error("Error de red:", error);
-    document.getElementById("mensajeLogin").textContent = "Hubo un problema con el servidor.";
-  }
+  });
 });
